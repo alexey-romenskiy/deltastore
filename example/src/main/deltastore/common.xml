@@ -1,0 +1,21 @@
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://writeonce.codes/xsd/deltastore"
+        xsi:schemaLocation="http://writeonce.codes/xsd/deltastore http://writeonce.codes/xsd/deltastore/deltastore.xsd"
+        name="Common"
+        package="codes.writeonce.deltastore.example.model.common"
+        abstract="true">
+
+    <type name="Order" key="OrderIdIndex">
+        <field name="id" mutable="false" nullable="false" type="id" idType="this"/>
+        <field name="foo" mutable="false" nullable="false" type="integer"/>
+        <field name="bar" type="string"/>
+
+        <key name="OrderIdIndex" unique="true">
+            <field ref="id"/>
+        </key>
+        <key name="OrderFooIndex">
+            <field ref="foo"/>
+        </key>
+    </type>
+
+</schema>

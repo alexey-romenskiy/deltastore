@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns="http://writeonce.codes/xsd/deltastore"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xml:lang="en"
+           version="1.0"
+           targetNamespace="http://writeonce.codes/xsd/deltastore"
+           elementFormDefault="qualified"
+           attributeFormDefault="unqualified">
+
+    <xs:element name="schema">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="import" type="Import" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="type" type="DeltaType" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute name="name" type="xs:string" use="required">
+                <xs:annotation>
+                    <xs:documentation>
+                        name of the schema
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="package" type="xs:string" use="required">
+                <xs:annotation>
+                    <xs:documentation>
+                        package of the schema
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="abstract" type="xs:boolean" default="false"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="Import">
+        <xs:attribute name="resource" type="xs:string" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="DeltaType">
+        <xs:sequence>
+            <xs:element name="extends" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:attribute name="ref" type="xs:string" use="required">
+                        <xs:annotation>
+                            <xs:documentation>
+                                reference to the parent type
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="field" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:attribute name="name" type="xs:string" use="required">
+                        <xs:annotation>
+                            <xs:documentation>
+                                unique for the given field
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="type" type="xs:string" use="required">
+                        <xs:annotation>
+                            <xs:documentation>
+                                type of the given field
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="mutable" type="xs:boolean" default="true"/>
+                    <xs:attribute name="nullable" type="xs:boolean" default="true"/>
+                    <xs:attribute name="idType" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>
+                                type of the given field
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="enumType" type="xs:string">
+                        <xs:annotation>
+                            <xs:documentation>
+                                type of the given field
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="key" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="field" minOccurs="0" maxOccurs="unbounded">
+                            <xs:complexType>
+                                <xs:attribute name="ref" type="xs:string" use="required">
+                                    <xs:annotation>
+                                        <xs:documentation>
+                                            reference to the field
+                                        </xs:documentation>
+                                    </xs:annotation>
+                                </xs:attribute>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                    <xs:attribute name="name" type="xs:string" use="required">
+                        <xs:annotation>
+                            <xs:documentation>
+                                unique for the given key
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:attribute>
+                    <xs:attribute name="unique" type="xs:boolean" default="false"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    unique for the given type
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="extends" type="xs:string"/>
+        <xs:attribute name="key" type="xs:string"/>
+        <xs:attribute name="abstract" type="xs:boolean" default="false"/>
+    </xs:complexType>
+
+</xs:schema>

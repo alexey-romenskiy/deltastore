@@ -2669,7 +2669,7 @@ public class SchemaGenerator {
                     .append("TreeMap<>();\n");
 
             if (keyInfo.isUnique()) {
-                appendAddUnique(schemaInfo, writer, entityTypeInfo, keyFields);
+                appendAddUnique(schemaInfo, writer, entityTypeInfo, keyFields, keyInfo);
                 appendAddUniqueUnsafe(schemaInfo, writer, entityTypeInfo, keyFields);
                 appendRemoveUnique(schemaInfo, writer, entityTypeInfo, keyFields);
                 appendGet(schemaInfo, writer, entityTypeInfo, keyFields);
@@ -3006,7 +3006,8 @@ public class SchemaGenerator {
             SchemaInfo schemaInfo,
             Appendable writer,
             EntityTypeInfo entityTypeInfo,
-            List<FieldInfo> keyFields
+            List<FieldInfo> keyFields,
+            KeyInfo keyInfo
     ) throws IOException {
 
         writer.append("\n");
@@ -3041,7 +3042,11 @@ public class SchemaGenerator {
 
                 writer.append(") {\n");
                 writer.append("\n");
-                indent(writer, 7).append("throw new NotUniqueException();\n");
+                indent(writer, 7).append("throw new NotUniqueException(\"Duplicate key \\\"").append(keyInfo.getName())
+                        .append("\\\" [")
+                        .append(keyFields.stream().map(e -> e.getName() + "=\" + " + e.getName() + " + \"")
+                                .collect(Collectors.joining(", ")))
+                        .append("]\");\n");
 
                 indent(writer, 6).append("}\n");
                 indent(writer, 6).append("map.put(").append(fieldInfo.getName()).append(", entity);\n");

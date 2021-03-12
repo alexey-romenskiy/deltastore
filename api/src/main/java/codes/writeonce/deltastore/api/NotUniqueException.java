@@ -7,4 +7,8 @@ public class NotUniqueException extends RuntimeException {
     public NotUniqueException() {
         // empty
     }
+
+    public NotUniqueException(String message) {
+        super(message);
+    }
 }

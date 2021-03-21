@@ -26,16 +26,16 @@ public final class BooleanTreeMap<V> extends AbstractTreeMap<Boolean, V, Boolean
         keys = new boolean[capacity];
     }
 
-    private BooleanTreeMap(int root, int nullKey, int free, int end, int capacity, int size, int modCount,
-            Object[] values, int[] flags, boolean[] keys) {
-        super(root, nullKey, free, end, capacity, size, modCount, values, flags);
+    private BooleanTreeMap(int root, int nullKey, int capacity, int size, int modCount, Object[] values, int[] flags,
+            boolean[] keys) {
+        super(root, nullKey, capacity, size, modCount, values, flags);
         this.keys = keys;
     }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     protected BooleanTreeMap<V> clone() {
-        return new BooleanTreeMap<>(root, nullKey, free, end, capacity, size, modCount, values.clone(), flags.clone(),
+        return new BooleanTreeMap<>(root, nullKey, capacity, size, modCount, values.clone(), flags.clone(),
                 keys.clone());
     }
 
@@ -86,11 +86,10 @@ public final class BooleanTreeMap<V> extends AbstractTreeMap<Boolean, V, Boolean
                 return null;
             } else {
                 final var value = values[n];
-                values[n] = null;
                 nullKey = 0;
+                free(n);
                 size--;
                 modCount++;
-                free(n);
                 return (V) value;
             }
         } else {
@@ -158,13 +157,9 @@ public final class BooleanTreeMap<V> extends AbstractTreeMap<Boolean, V, Boolean
                 }
 
                 keys[p] = false;
-                values[p] = null;
-                flags[p * 3] = 0;
-                flags[p * 3 + 1] = 0;
-                flags[p * 3 + 2] = 0;
+                free(p);
                 size--;
                 modCount++;
-                free(p);
                 return (V) value;
             }
         }
@@ -248,6 +243,11 @@ public final class BooleanTreeMap<V> extends AbstractTreeMap<Boolean, V, Boolean
     @Override
     protected int addCapacity() {
         return this.capacity + 1;
+    }
+
+    @Override
+    protected int shrinkedCapacity(int used) {
+        return used;
     }
 
     @Override

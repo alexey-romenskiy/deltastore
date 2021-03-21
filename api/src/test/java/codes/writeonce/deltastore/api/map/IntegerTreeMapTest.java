@@ -120,17 +120,6 @@ public class IntegerTreeMapTest {
             assertNull(map.get(value));
         }
 
-        int n = 0;
-        for (var i = map.free; i != 0; i = map.flags[i * 3]) {
-            assertEquals(0, map.keys[i]);
-            assertNull(map.values[i]);
-            assertEquals(0, map.flags[i * 3 + 1]);
-            assertEquals(0, map.flags[i * 3 + 2]);
-            n++;
-        }
-
-        assertEquals(map.end, map.size + n + 1);
-
         final var nodes = added.contains(null) ? map.size() - 1 : map.size();
         count = 0;
         maxDepth = 0;

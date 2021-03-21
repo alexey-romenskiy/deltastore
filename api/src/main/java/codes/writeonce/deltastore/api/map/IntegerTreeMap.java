@@ -27,16 +27,16 @@ public final class IntegerTreeMap<V> extends AbstractTreeMap<Integer, V, Integer
         keys = new int[capacity];
     }
 
-    private IntegerTreeMap(int root, int nullKey, int free, int end, int capacity, int size, int modCount,
-            Object[] values, int[] flags, int[] keys) {
-        super(root, nullKey, free, end, capacity, size, modCount, values, flags);
+    private IntegerTreeMap(int root, int nullKey, int capacity, int size, int modCount, Object[] values, int[] flags,
+            int[] keys) {
+        super(root, nullKey, capacity, size, modCount, values, flags);
         this.keys = keys;
     }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     protected IntegerTreeMap<V> clone() {
-        return new IntegerTreeMap<>(root, nullKey, free, end, capacity, size, modCount, values.clone(), flags.clone(),
+        return new IntegerTreeMap<>(root, nullKey, capacity, size, modCount, values.clone(), flags.clone(),
                 keys.clone());
     }
 
@@ -87,11 +87,10 @@ public final class IntegerTreeMap<V> extends AbstractTreeMap<Integer, V, Integer
                 return null;
             } else {
                 final var value = values[n];
-                values[n] = null;
                 nullKey = 0;
+                free(n);
                 size--;
                 modCount++;
-                free(n);
                 return (V) value;
             }
         } else {
@@ -159,13 +158,9 @@ public final class IntegerTreeMap<V> extends AbstractTreeMap<Integer, V, Integer
                 }
 
                 keys[p] = 0;
-                values[p] = null;
-                flags[p * 3] = 0;
-                flags[p * 3 + 1] = 0;
-                flags[p * 3 + 2] = 0;
+                free(p);
                 size--;
                 modCount++;
-                free(p);
                 return (V) value;
             }
         }

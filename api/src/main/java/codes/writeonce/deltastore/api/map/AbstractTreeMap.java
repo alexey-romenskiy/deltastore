@@ -26,6 +26,9 @@ public abstract class AbstractTreeMap<K, V, M extends AbstractTreeMap<K, V, M>> 
         if (SHRINK_FACTOR_NUMERATOR < SHRINK_FACTOR_DENOMINATOR) {
             throw new RuntimeException();
         }
+        if (GROWTH_FACTOR_NUMERATOR * SHRINK_FACTOR_DENOMINATOR > SHRINK_FACTOR_NUMERATOR * GROWTH_FACTOR_DENOMINATOR) {
+            throw new RuntimeException();
+        }
     }
 
     protected static final int RED = 0x80000000;
@@ -33,10 +36,6 @@ public abstract class AbstractTreeMap<K, V, M extends AbstractTreeMap<K, V, M>> 
     protected int root;
 
     protected int nullKey;
-
-    protected int free;
-
-    protected int end;
 
     protected int capacity;
 
@@ -50,17 +49,14 @@ public abstract class AbstractTreeMap<K, V, M extends AbstractTreeMap<K, V, M>> 
 
     public AbstractTreeMap(int capacity) {
         this.capacity = capacity;
-        end = 1;
         values = new Object[capacity];
         flags = new int[capacity * 3];
     }
 
-    protected AbstractTreeMap(int root, int nullKey, int free, int end, int capacity, int size, int modCount,
-            Object[] values, int[] flags) {
+    protected AbstractTreeMap(int root, int nullKey, int capacity, int size, int modCount, Object[] values,
+            int[] flags) {
         this.root = root;
         this.nullKey = nullKey;
-        this.free = free;
-        this.end = end;
         this.capacity = capacity;
         this.size = size;
         this.modCount = modCount;
@@ -350,73 +346,50 @@ public abstract class AbstractTreeMap<K, V, M extends AbstractTreeMap<K, V, M>> 
 
     protected int allocate() {
 
-        final var n = free;
-        if (n == 0) {
-            final var c = end;
-            if (c == capacity) {
-                grow();
-            }
-            end = c + 1;
-            return c;
-        } else {
-            final var i = n * 3;
-            free = flags[i];
-            flags[i] = 0;
-            return n;
+        final var c = size + 1;
+        if (c == capacity) {
+            grow();
         }
+        return c;
     }
 
     protected void free(int n) {
 
-        flags[n * 3] = free;
-        free = n;
+        final var last = size;
 
-        final var used = size + 1;
-
-        if (compact(used)) {
-
-            if (end > used) {
-
-                modCount++;
-
-                int f = free;
-
-                for (int i = used; i < end; i++) {
-                    final var parent = flags[i * 3 + 2];
-                    if ((parent & ~RED) == 0) {
-                        if (root == i) {
-                            f = nextFree(f, used);
-                            final var f2 = nextFree(f);
-                            root = f;
-                            patch(f, i, parent);
-                            f = f2;
-                        } else if (nullKey == i) {
-                            f = nextFree(f, used);
-                            final var f2 = nextFree(f);
-                            nullKey = f;
-                            flags[f * 3] = 0;
-                            values[f] = values[i];
-                            values[i] = null;
-                            f = f2;
-                        }
-                    } else {
-                        flags[i * 3 + 2] = 0;
-                        f = nextFree(f, used);
-                        final var f2 = nextFree(f);
-                        patchParent(f, i, parent);
-                        patch(f, i, parent);
-                        f = f2;
-                    }
+        if (n == last) {
+            values[n] = null;
+            flags[n * 3] = 0;
+            flags[n * 3 + 1] = 0;
+            flags[n * 3 + 2] = 0;
+        } else {
+            modCount++;
+            final var parent = flags[last * 3 + 2];
+            if ((parent & ~RED) == 0) {
+                if (root == last) {
+                    root = n;
+                    patch(n, last, parent);
+                } else if (nullKey == last) {
+                    nullKey = n;
+                    values[n] = values[last];
+                    values[last] = null;
+                    flags[n * 3] = 0;
+                    flags[n * 3 + 1] = 0;
+                    flags[n * 3 + 2] = 0;
                 }
-
-                free = nextFree(f, used);
-                end = used;
+            } else {
+                flags[last * 3 + 2] = 0;
+                patchParent(n, last, parent);
+                patch(n, last, parent);
             }
+        }
 
-            capacity = used;
-            flags = Arrays.copyOf(flags, used * 3);
-            values = Arrays.copyOf(values, used);
-            realloc(used);
+        if (compact(last)) {
+            final var shrinkedCapacity = shrinkedCapacity(last);
+            capacity = shrinkedCapacity;
+            flags = Arrays.copyOf(flags, shrinkedCapacity * 3);
+            values = Arrays.copyOf(values, shrinkedCapacity);
+            realloc(shrinkedCapacity);
         }
     }
 
@@ -456,19 +429,6 @@ public abstract class AbstractTreeMap<K, V, M extends AbstractTreeMap<K, V, M>> 
         }
     }
 
-    private int nextFree(int f, int used) {
-
-        while (f >= used) {
-            f = flags[f * 3];
-        }
-        return f;
-    }
-
-    private int nextFree(int f) {
-
-        return flags[f * 3];
-    }
-
     private void grow() {
 
         final int capacity = addCapacity();
@@ -480,6 +440,10 @@ public abstract class AbstractTreeMap<K, V, M extends AbstractTreeMap<K, V, M>> 
 
     protected int addCapacity() {
         return (this.capacity + 1) * GROWTH_FACTOR_NUMERATOR / GROWTH_FACTOR_DENOMINATOR;
+    }
+
+    protected int shrinkedCapacity(int used) {
+        return used * GROWTH_FACTOR_NUMERATOR / GROWTH_FACTOR_DENOMINATOR;
     }
 
     protected boolean compact(int used) {

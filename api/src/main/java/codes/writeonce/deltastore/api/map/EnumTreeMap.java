@@ -27,17 +27,16 @@ public final class EnumTreeMap<V> extends AbstractTreeMap<Enum<?>, V, EnumTreeMa
         keys = new int[capacity];
     }
 
-    private EnumTreeMap(int root, int nullKey, int free, int end, int capacity, int size, int modCount,
-            Object[] values, int[] flags, int[] keys) {
-        super(root, nullKey, free, end, capacity, size, modCount, values, flags);
+    private EnumTreeMap(int root, int nullKey, int capacity, int size, int modCount, Object[] values, int[] flags,
+            int[] keys) {
+        super(root, nullKey, capacity, size, modCount, values, flags);
         this.keys = keys;
     }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     protected EnumTreeMap<V> clone() {
-        return new EnumTreeMap<>(root, nullKey, free, end, capacity, size, modCount, values.clone(), flags.clone(),
-                keys.clone());
+        return new EnumTreeMap<>(root, nullKey, capacity, size, modCount, values.clone(), flags.clone(), keys.clone());
     }
 
     @Override
@@ -87,11 +86,10 @@ public final class EnumTreeMap<V> extends AbstractTreeMap<Enum<?>, V, EnumTreeMa
                 return null;
             } else {
                 final var value = values[n];
-                values[n] = null;
                 nullKey = 0;
+                free(n);
                 size--;
                 modCount++;
-                free(n);
                 return (V) value;
             }
         } else {
@@ -159,13 +157,9 @@ public final class EnumTreeMap<V> extends AbstractTreeMap<Enum<?>, V, EnumTreeMa
                 }
 
                 keys[p] = 0;
-                values[p] = null;
-                flags[p * 3] = 0;
-                flags[p * 3 + 1] = 0;
-                flags[p * 3 + 2] = 0;
+                free(p);
                 size--;
                 modCount++;
-                free(p);
                 return (V) value;
             }
         }
@@ -249,6 +243,11 @@ public final class EnumTreeMap<V> extends AbstractTreeMap<Enum<?>, V, EnumTreeMa
     @Override
     protected int addCapacity() {
         return this.capacity + 1;
+    }
+
+    @Override
+    protected int shrinkedCapacity(int used) {
+        return used;
     }
 
     @Override

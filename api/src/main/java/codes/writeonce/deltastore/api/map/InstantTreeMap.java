@@ -29,9 +29,9 @@ public final class InstantTreeMap<V> extends AbstractTreeMap<Instant, V, Instant
         keys2 = new int[capacity];
     }
 
-    private InstantTreeMap(int root, int nullKey, int free, int end, int capacity, int size, int modCount,
-            Object[] values, int[] flags, long[] keys1, int[] keys2) {
-        super(root, nullKey, free, end, capacity, size, modCount, values, flags);
+    private InstantTreeMap(int root, int nullKey, int capacity, int size, int modCount, Object[] values, int[] flags,
+            long[] keys1, int[] keys2) {
+        super(root, nullKey, capacity, size, modCount, values, flags);
         this.keys1 = keys1;
         this.keys2 = keys2;
     }
@@ -39,7 +39,7 @@ public final class InstantTreeMap<V> extends AbstractTreeMap<Instant, V, Instant
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     protected InstantTreeMap<V> clone() {
-        return new InstantTreeMap<>(root, nullKey, free, end, capacity, size, modCount, values.clone(), flags.clone(),
+        return new InstantTreeMap<>(root, nullKey, capacity, size, modCount, values.clone(), flags.clone(),
                 keys1.clone(), keys2.clone());
     }
 
@@ -97,11 +97,10 @@ public final class InstantTreeMap<V> extends AbstractTreeMap<Instant, V, Instant
                 return null;
             } else {
                 final var value = values[n];
-                values[n] = null;
                 nullKey = 0;
+                free(n);
                 size--;
                 modCount++;
-                free(n);
                 return (V) value;
             }
         } else {
@@ -177,13 +176,9 @@ public final class InstantTreeMap<V> extends AbstractTreeMap<Instant, V, Instant
 
                     keys1[p] = 0;
                     keys2[p] = 0;
-                    values[p] = null;
-                    flags[p * 3] = 0;
-                    flags[p * 3 + 1] = 0;
-                    flags[p * 3 + 2] = 0;
+                    free(p);
                     size--;
                     modCount++;
-                    free(p);
                     return (V) value;
                 }
             }

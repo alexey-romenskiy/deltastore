@@ -29,17 +29,16 @@ public final class IdTreeMap<V> extends AbstractTreeMap<Id<?>, V, IdTreeMap<V>> 
         keys = new long[capacity];
     }
 
-    private IdTreeMap(int root, int nullKey, int free, int end, int capacity, int size, int modCount,
-            Object[] values, int[] flags, long[] keys) {
-        super(root, nullKey, free, end, capacity, size, modCount, values, flags);
+    private IdTreeMap(int root, int nullKey, int capacity, int size, int modCount, Object[] values, int[] flags,
+            long[] keys) {
+        super(root, nullKey, capacity, size, modCount, values, flags);
         this.keys = keys;
     }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     protected IdTreeMap<V> clone() {
-        return new IdTreeMap<>(root, nullKey, free, end, capacity, size, modCount, values.clone(), flags.clone(),
-                keys.clone());
+        return new IdTreeMap<>(root, nullKey, capacity, size, modCount, values.clone(), flags.clone(), keys.clone());
     }
 
     @Override
@@ -89,11 +88,10 @@ public final class IdTreeMap<V> extends AbstractTreeMap<Id<?>, V, IdTreeMap<V>> 
                 return null;
             } else {
                 final var value = values[n];
-                values[n] = null;
                 nullKey = 0;
+                free(n);
                 size--;
                 modCount++;
-                free(n);
                 return (V) value;
             }
         } else {
@@ -161,13 +159,9 @@ public final class IdTreeMap<V> extends AbstractTreeMap<Id<?>, V, IdTreeMap<V>> 
                 }
 
                 keys[p] = 0;
-                values[p] = null;
-                flags[p * 3] = 0;
-                flags[p * 3 + 1] = 0;
-                flags[p * 3 + 2] = 0;
+                free(p);
                 size--;
                 modCount++;
-                free(p);
                 return (V) value;
             }
         }

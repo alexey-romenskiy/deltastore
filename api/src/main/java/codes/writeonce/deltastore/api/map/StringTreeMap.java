@@ -26,17 +26,17 @@ public final class StringTreeMap<V> extends AbstractTreeMap<String, V, StringTre
         keys = new Object[capacity];
     }
 
-    private StringTreeMap(int root, int nullKey, int free, int end, int capacity, int size, int modCount,
-            Object[] values, int[] flags, Object[] keys) {
-        super(root, nullKey, free, end, capacity, size, modCount, values, flags);
+    private StringTreeMap(int root, int nullKey, int capacity, int size, int modCount, Object[] values, int[] flags,
+            Object[] keys) {
+        super(root, nullKey, capacity, size, modCount, values, flags);
         this.keys = keys;
     }
 
     @SuppressWarnings("MethodDoesntCallSuperMethod")
     @Override
     protected StringTreeMap<V> clone() {
-        return new StringTreeMap<>(root, nullKey, free, end, capacity, size, modCount, values.clone(),
-                flags.clone(), keys.clone());
+        return new StringTreeMap<>(root, nullKey, capacity, size, modCount, values.clone(), flags.clone(),
+                keys.clone());
     }
 
     @Override
@@ -79,11 +79,10 @@ public final class StringTreeMap<V> extends AbstractTreeMap<String, V, StringTre
                 return null;
             } else {
                 final var value = values[n];
-                values[n] = null;
                 nullKey = 0;
+                free(n);
                 size--;
                 modCount++;
-                free(n);
                 return (V) value;
             }
         } else {
@@ -143,13 +142,9 @@ public final class StringTreeMap<V> extends AbstractTreeMap<String, V, StringTre
                     }
 
                     keys[p] = null;
-                    values[p] = null;
-                    flags[p * 3] = 0;
-                    flags[p * 3 + 1] = 0;
-                    flags[p * 3 + 2] = 0;
+                    free(p);
                     size--;
                     modCount++;
-                    free(p);
                     return (V) value;
                 }
             }

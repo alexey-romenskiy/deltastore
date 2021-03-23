@@ -2556,6 +2556,25 @@ public class SchemaGenerator {
         }
     }
 
+    private void appendParamDefs2(
+            SchemaInfo schemaInfo,
+            Appendable writer,
+            EntityTypeInfo entityTypeInfo,
+            List<FieldInfo> fields
+    ) throws IOException {
+
+        indent(writer.append("\n"), 3);
+
+        for (final FieldInfo field : fields) {
+            appendParamDef(writer, entityTypeInfo, field, schemaInfo);
+            indent(writer.append(",\n"), 3);
+        }
+
+        appendTypeName(writer.append("ArrayList<? super "), entityTypeInfo);
+
+        indent(writer.append("> destinationList\n"), 1);
+    }
+
     private void appendParamDef(
             Appendable writer,
             EntityTypeInfo entityTypeInfo,
@@ -2679,6 +2698,7 @@ public class SchemaGenerator {
                 appendRemoveNotUnique(schemaInfo, writer, entityTypeInfo, keyFields, uniqKeyFields);
                 appendIterator(schemaInfo, writer, entityTypeInfo, keyFields, uniqKeyFields);
                 appendList(schemaInfo, writer, entityTypeInfo, keyFields);
+                appendListReusable(schemaInfo, writer, entityTypeInfo, keyFields);
                 appendStream(schemaInfo, writer, entityTypeInfo, keyFields);
                 appendIteratorAllNotUnique(writer, entityTypeInfo, keyFields, uniqKeyFields);
             }
@@ -3299,6 +3319,34 @@ public class SchemaGenerator {
         indent(writer, 3).append("}\n");
         indent(writer, 2).append("}\n");
         indent(writer, 2).append("return list;\n");
+        indent(writer, 1).append("}\n");
+    }
+
+    private void appendListReusable(
+            SchemaInfo schemaInfo,
+            Appendable writer,
+            EntityTypeInfo entityTypeInfo,
+            List<FieldInfo> keyFields
+    ) throws IOException {
+
+        writer.append("\n");
+        indent(writer, 1).append("public void list(");
+        appendParamDefs2(schemaInfo, writer, entityTypeInfo, keyFields);
+        writer.append(") {\n");
+        indent(writer, 2).append("destinationList.clear();\n");
+        indent(writer, 2).append("try (var iterator = iterator(");
+
+        appendParamNames(writer, keyFields);
+
+        writer.append(")) {\n");
+        indent(writer, 3).append("while (true) {\n");
+        indent(writer, 4).append("final var value = iterator.get();\n");
+        indent(writer, 4).append("if (value == null) {\n");
+        indent(writer, 5).append("break;\n");
+        indent(writer, 4).append("}\n");
+        indent(writer, 4).append("destinationList.add(value);\n");
+        indent(writer, 3).append("}\n");
+        indent(writer, 2).append("}\n");
         indent(writer, 1).append("}\n");
     }
 

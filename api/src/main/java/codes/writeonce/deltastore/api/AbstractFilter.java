@@ -26,6 +26,20 @@ public abstract class AbstractFilter<E extends Entity<?>> implements Index<E> {
     }
 
     @Override
+    public void list(@Nonnull ArrayList<? super E> list) {
+        list.clear();
+        try (var iterator = iterator()) {
+            while (true) {
+                final var value = iterator.get();
+                if (value == null) {
+                    break;
+                }
+                list.add(value);
+            }
+        }
+    }
+
+    @Override
     public int size() {
         try (var iterator = iterator()) {
             return iterator.skip(Integer.MAX_VALUE);

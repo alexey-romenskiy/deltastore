@@ -16,6 +16,24 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
 
+    <scm>
+        <connection>scm:git:https://github.com/alexey-romenskiy/deltastore.git</connection>
+        <developerConnection>scm:git:https://github.com/alexey-romenskiy/deltastore.git</developerConnection>
+        <url>https://github.com/alexey-romenskiy/deltastore</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <distributionManagement>
+        <repository>
+            <id>writeonce</id>
+            <url>https://artifactory.writeonce.codes/artifactory/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>writeonce</id>
+            <url>https://artifactory.writeonce.codes/artifactory/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
     <modules>
         <module>api</module>
         <module>generator</module>
@@ -204,7 +222,7 @@
                     <configuration>
                         <autoVersionSubmodules>true</autoVersionSubmodules>
                         <useReleaseProfile>false</useReleaseProfile>
-                        <releaseProfiles>release</releaseProfiles>
+                        <!--<releaseProfiles>release</releaseProfiles>-->
                         <goals>deploy</goals>
                     </configuration>
                 </plugin>

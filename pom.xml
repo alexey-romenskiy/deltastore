@@ -5,7 +5,7 @@
 
     <groupId>codes.writeonce.deltastore</groupId>
     <artifactId>deltastore</artifactId>
-    <version>0.2.0</version>
+    <version>0.2.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <properties>
@@ -19,7 +19,7 @@
         <connection>scm:git:https://github.com/alexey-romenskiy/deltastore.git</connection>
         <developerConnection>scm:git:https://github.com/alexey-romenskiy/deltastore.git</developerConnection>
         <url>https://github.com/alexey-romenskiy/deltastore</url>
-        <tag>deltastore-0.2.0</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <distributionManagement>
@@ -55,12 +55,12 @@
             <dependency>
                 <groupId>codes.writeonce.deltastore</groupId>
                 <artifactId>deltastore-api</artifactId>
-                <version>0.2.0</version>
+                <version>0.2.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>codes.writeonce.deltastore</groupId>
                 <artifactId>deltastore-generator</artifactId>
-                <version>0.2.0</version>
+                <version>0.2.1-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>com.google.code.findbugs</groupId>
@@ -236,7 +236,7 @@
                 <plugin>
                     <groupId>codes.writeonce.deltastore</groupId>
                     <artifactId>deltastore-maven-plugin</artifactId>
-                    <version>0.2.0</version>
+                    <version>0.2.1-SNAPSHOT</version>
                 </plugin>
                 <plugin>
                     <groupId>org.basepom.maven</groupId>

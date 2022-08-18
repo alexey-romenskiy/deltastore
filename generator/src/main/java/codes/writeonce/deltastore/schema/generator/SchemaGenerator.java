@@ -81,8 +81,10 @@ public class SchemaGenerator {
 
                 for (final SchemaInfo parentSchemaInfo : schemaInfo.getParentSchemaMap().values()) {
                     for (final EntityTypeInfo entityTypeInfo : parentSchemaInfo.getTypeMap().values()) {
-                        writer.append("import ").append(parentSchemaInfo.getPackageName()).append('.')
-                                .append(entityTypeInfo.getName()).append(";\n");
+                        if (entityTypeInfo.getSchemaName().equals(parentSchemaInfo.getName())) {
+                            writer.append("import ").append(parentSchemaInfo.getPackageName()).append('.')
+                                    .append(entityTypeInfo.getName()).append(";\n");
+                        }
                     }
                 }
             }
@@ -180,11 +182,14 @@ public class SchemaGenerator {
 
                 for (final SchemaInfo parentSchemaInfo : schemaInfo.getParentSchemaMap().values()) {
                     for (final KeyInfo keyInfo : parentSchemaInfo.getKeyMap().values()) {
-                        writer.append("import ").append(parentSchemaInfo.getPackageName()).append('.')
-                                .append(keyInfo.getName()).append(";\n");
+                        if (keyInfo.getSchemaName().equals(parentSchemaInfo.getName())) {
+                            writer.append("import ").append(parentSchemaInfo.getPackageName()).append('.')
+                                    .append(keyInfo.getName()).append(";\n");
+                        }
                     }
                     for (final EntityTypeInfo entityTypeInfo : parentSchemaInfo.getTypeMap().values()) {
-                        if (entityTypeInfo.isInstantiable()) {
+                        if (entityTypeInfo.getSchemaName().equals(parentSchemaInfo.getName()) &&
+                            entityTypeInfo.isInstantiable()) {
                             writer.append("import ").append(parentSchemaInfo.getPackageName()).append('.')
                                     .append(entityTypeInfo.getName()).append("Table;\n");
                         }
@@ -196,7 +201,7 @@ public class SchemaGenerator {
 
             writer.append("public class ").append(storeName).append(" extends Store<").append(storeName).append(">");
 
-            appendImplementsAbstractStore(writer, schemaInfo);
+            appendImplementsAbstractStore(writer, schemaInfo, true);
 
             writer.append(" {\n");
 
@@ -303,10 +308,32 @@ public class SchemaGenerator {
             final String storeName = getStoreName(schemaInfo);
 
             writer.append("package ").append(schemaInfo.getPackageName()).append(";\n");
+
+            if (!schemaInfo.getParentSchemaMap().isEmpty()) {
+
+                writer.append("\n");
+
+                for (final SchemaInfo parentSchemaInfo : schemaInfo.getParentSchemaMap().values()) {
+                    for (final KeyInfo keyInfo : parentSchemaInfo.getKeyMap().values()) {
+                        if (keyInfo.getSchemaName().equals(parentSchemaInfo.getName())) {
+                            writer.append("import ").append(parentSchemaInfo.getPackageName()).append('.')
+                                    .append(keyInfo.getName()).append(";\n");
+                        }
+                    }
+                    for (final EntityTypeInfo entityTypeInfo : parentSchemaInfo.getTypeMap().values()) {
+                        if (entityTypeInfo.getSchemaName().equals(parentSchemaInfo.getName()) &&
+                            entityTypeInfo.isInstantiable()) {
+                            writer.append("import ").append(parentSchemaInfo.getPackageName()).append('.')
+                                    .append(entityTypeInfo.getName()).append("Table;\n");
+                        }
+                    }
+                }
+            }
+
             writer.append("\n");
             writer.append("public interface ").append(storeName);
 
-            appendImplementsAbstractStore(writer, schemaInfo);
+            appendImplementsAbstractStore(writer, schemaInfo, false);
 
             writer.append(" {\n");
 
@@ -329,9 +356,10 @@ public class SchemaGenerator {
         }
     }
 
-    private void appendImplementsAbstractStore(OutputStreamWriter writer, SchemaInfo schemaInfo) throws IOException {
+    private void appendImplementsAbstractStore(OutputStreamWriter writer, SchemaInfo schemaInfo, boolean instantiable)
+            throws IOException {
         if (!schemaInfo.getParentSchemaMap().isEmpty()) {
-            writer.append(" implements ");
+            writer.append(instantiable ? " implements " : " extends ");
             boolean first = true;
             for (final SchemaInfo parentSchemaInfo : schemaInfo.getDirectParentSchemaMap().values()) {
                 if (first) {
@@ -414,6 +442,15 @@ public class SchemaGenerator {
         writer.append("import static java.util.Objects.requireNonNull;\n");
 
         appendImport(writer, schemaInfo, entityTypeInfo);
+
+        for (final SchemaInfo parentSchemaInfo : schemaInfo.getParentSchemaMap().values()) {
+            for (final EntityTypeInfo eti : parentSchemaInfo.getTypeMap().values()) {
+                if (eti.getSchemaName().equals(parentSchemaInfo.getName())) {
+                    writer.append("import ").append(parentSchemaInfo.getPackageName()).append('.')
+                            .append(eti.getName()).append(";\n");
+                }
+            }
+        }
 
         writer.append("\n");
         writer.append("class ").append(entityTypeInfo.getName()).append("DeltaRecord extends DeltaRecord<")
@@ -685,6 +722,15 @@ public class SchemaGenerator {
         writer.append("import java.util.Objects;\n");
 
         appendImport(writer, schemaInfo, entityTypeInfo);
+
+        for (final SchemaInfo parentSchemaInfo : schemaInfo.getParentSchemaMap().values()) {
+            for (final EntityTypeInfo eti : parentSchemaInfo.getTypeMap().values()) {
+                if (eti.getSchemaName().equals(parentSchemaInfo.getName())) {
+                    writer.append("import ").append(parentSchemaInfo.getPackageName()).append('.')
+                            .append(eti.getName()).append(";\n");
+                }
+            }
+        }
 
         writer.append("\n");
         writer.append("class ").append(entityTypeInfo.getName()).append("Record extends Record<")
@@ -1830,6 +1876,16 @@ public class SchemaGenerator {
             } else if (parents.isEmpty()) {
                 writer.append("import codes.writeonce.deltastore.api.Entity;\n");
             }
+
+            for (final SchemaInfo parentSchemaInfo : schemaInfo.getParentSchemaMap().values()) {
+                for (final EntityTypeInfo eti : parentSchemaInfo.getTypeMap().values()) {
+                    if (eti.getSchemaName().equals(parentSchemaInfo.getName())) {
+                        writer.append("import ").append(parentSchemaInfo.getPackageName()).append('.')
+                                .append(eti.getName()).append(";\n");
+                    }
+                }
+            }
+
             writer.append("\n");
             writer.append("public interface ").append(entityName);
 
@@ -1929,6 +1985,15 @@ public class SchemaGenerator {
             writer.append("import static java.util.function.Function.identity;\n");
 
             appendImport(writer, schemaInfo, entityTypeInfo);
+
+            for (final SchemaInfo parentSchemaInfo : schemaInfo.getParentSchemaMap().values()) {
+                for (final EntityTypeInfo eti : parentSchemaInfo.getTypeMap().values()) {
+                    if (eti.getSchemaName().equals(parentSchemaInfo.getName())) {
+                        writer.append("import ").append(parentSchemaInfo.getPackageName()).append('.')
+                                .append(eti.getName()).append(";\n");
+                    }
+                }
+            }
 
             writer.append("\n");
             writer.append("public class ").append(entityTypeInfo.getName())
@@ -2381,6 +2446,15 @@ public class SchemaGenerator {
                 writer.append("import ").append(name).append('.').append(entityTypeInfo.getName()).append("Table;\n");
             }
 
+            for (final SchemaInfo parentSchemaInfo : schemaInfo.getParentSchemaMap().values()) {
+                for (final EntityTypeInfo eti : parentSchemaInfo.getTypeMap().values()) {
+                    if (eti.getSchemaName().equals(parentSchemaInfo.getName())) {
+                        writer.append("import ").append(parentSchemaInfo.getPackageName()).append('.')
+                                .append(eti.getName()).append(";\n");
+                    }
+                }
+            }
+
             writer.append("\n");
             writer.append("public class ").append(tableName).append(" extends AbstractTable<").append(storeName)
                     .append(", ").append(entityTypeInfo.getName()).append("> implements ")
@@ -2466,6 +2540,16 @@ public class SchemaGenerator {
             writer.append("package ").append(packageName).append(";\n");
             writer.append("\n");
             writer.append("import codes.writeonce.deltastore.api.Table;\n");
+
+            for (final SchemaInfo parentSchemaInfo : schemaInfo.getParentSchemaMap().values()) {
+                for (final EntityTypeInfo eti : parentSchemaInfo.getTypeMap().values()) {
+                    if (eti.getSchemaName().equals(parentSchemaInfo.getName())) {
+                        writer.append("import ").append(parentSchemaInfo.getPackageName()).append('.')
+                                .append(eti.getName()).append(";\n");
+                    }
+                }
+            }
+
             writer.append("\n");
             writer.append("public interface ").append(tableName).append(" extends Table<")
                     .append(entityTypeInfo.getName()).append("> {\n");
@@ -2662,6 +2746,17 @@ public class SchemaGenerator {
             writer.append("\n");
             writer.append("import static java.util.Spliterator.NONNULL;\n");
             writer.append("import static java.util.Spliterator.ORDERED;\n");
+            writer.append("\n");
+
+            for (final SchemaInfo parentSchemaInfo : schemaInfo.getParentSchemaMap().values()) {
+                for (final EntityTypeInfo eti : parentSchemaInfo.getTypeMap().values()) {
+                    if (eti.getSchemaName().equals(parentSchemaInfo.getName())) {
+                        writer.append("import ").append(parentSchemaInfo.getPackageName()).append('.')
+                                .append(eti.getName()).append(";\n");
+                    }
+                }
+            }
+
             writer.append("\n");
             appendTypeName(writer.append("public class ").append(keyInfo.getName()).append(" extends AbstractKey<"),
                     entityTypeInfo).append("> {\n");

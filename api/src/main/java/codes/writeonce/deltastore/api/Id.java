@@ -6,6 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectStreamException;
 import java.io.Serial;
 import java.io.Serializable;
 import java.lang.ref.ReferenceQueue;
@@ -17,7 +21,10 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 @SuppressWarnings("rawtypes")
-public final class Id<E extends IdentifiableEntity<?>> implements Comparable<Id<?>> {
+public final class Id<E extends IdentifiableEntity<?>> implements Comparable<Id<?>>, Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 4477613389180728093L;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Id.class);
 
@@ -472,6 +479,21 @@ public final class Id<E extends IdentifiableEntity<?>> implements Comparable<Id<
             super(referent, referenceQueue);
             value = referent.value();
         }
+    }
+
+    @Serial
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.writeLong(value);
+    }
+
+    @Serial
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        value = in.readLong();
+    }
+
+    @Serial
+    private Object readResolve() throws ObjectStreamException {
+        return Id.of(value);
     }
 
     private static class HashFunction implements LongHashFunction, Serializable {

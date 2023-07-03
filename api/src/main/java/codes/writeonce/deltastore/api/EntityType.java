@@ -19,4 +19,6 @@ public interface EntityType<E extends Entity<E>> {
     List<Key<E>> getKeys();
 
     Key<E> getKey(String name);
+
+    Class<E> getEntityClass();
 }

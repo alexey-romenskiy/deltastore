@@ -2054,6 +2054,13 @@ public class SchemaGenerator {
             indent(writer, 2).append("return KEY_MAP.get(name);\n");
             indent(writer, 1).append("}\n");
 
+            writer.append("\n");
+            indent(writer, 1).append("@Override\n");
+            indent(writer, 1).append("public Class<").append(entityTypeInfo.getName())
+                    .append("> getEntityClass() {\n");
+            indent(writer, 2).append("return ").append(entityTypeInfo.getName()).append(".class;\n");
+            indent(writer, 1).append("}\n");
+
             writer.write("}\n");
         }
     }
@@ -2437,6 +2444,7 @@ public class SchemaGenerator {
             writer.append("\n");
             writer.append("import codes.writeonce.deltastore.api.AbstractTable;\n");
             writer.append("import codes.writeonce.deltastore.api.FieldValueSupplierVisitor;\n");
+            writer.append("import codes.writeonce.deltastore.api.Index;\n");
 
             if (!entityTypeInfo.getSchemaName().equals(schemaInfo.getName())) {
                 writer.append("\n");
@@ -2463,6 +2471,15 @@ public class SchemaGenerator {
             writer.append("\n");
             indent(writer, 1).append("public ").append(tableName).append("(").append(storeName).append(" store) {\n");
             indent(writer, 2).append("super(store, ").append(entityTypeName).append(".INSTANCE);\n");
+            indent(writer, 1).append("}\n");
+
+            final KeyInfo key = getKey(schemaInfo, entityTypeInfo);
+
+            writer.append("\n");
+            indent(writer, 1).append("@Override\n");
+            indent(writer, 1).append("public Index<?> getKeyIndex() {\n");
+
+            indent(writer, 2).append("return store.").append(withSmallLetter(key.getName())).append("();\n");
             indent(writer, 1).append("}\n");
 
             writer.append("\n");
@@ -2502,8 +2519,6 @@ public class SchemaGenerator {
             appendTypeName(indent(writer, 1).append("public <X extends Throwable> "), entityTypeInfo)
                     .append(" get(FieldValueSupplierVisitor<X, ").append(entityTypeInfo.getName())
                     .append("> visitor) throws X {\n");
-
-            final KeyInfo key = getKey(schemaInfo, entityTypeInfo);
 
             indent(writer, 2).append("return (").append(entityTypeInfo.getName()).append(") store.")
                     .append(withSmallLetter(key.getName())).append("().get(");
